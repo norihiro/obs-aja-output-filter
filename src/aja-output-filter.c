@@ -52,17 +52,14 @@ static void ajaof_render(void *data, uint32_t cx, uint32_t cy)
 	gs_texrender_end(filter->texrender);
 
 	struct video_frame output_frame;
-	if (!video_output_lock_frame(filter->video_output, &output_frame, 1,
-				     obs_get_video_frame_time()))
+	if (!video_output_lock_frame(filter->video_output, &output_frame, 1, obs_get_video_frame_time()))
 		return;
 
-	gs_stage_texture(filter->stagesurface,
-			 gs_texrender_get_texture(filter->texrender));
+	gs_stage_texture(filter->stagesurface, gs_texrender_get_texture(filter->texrender));
 
 	uint8_t *video_data;
 	uint32_t video_linesize;
-	if (!gs_stagesurface_map(filter->stagesurface, &video_data,
-				 &video_linesize))
+	if (!gs_stagesurface_map(filter->stagesurface, &video_data, &video_linesize))
 		return;
 
 	uint32_t linesize = output_frame.linesize[0];
@@ -70,8 +67,7 @@ static void ajaof_render(void *data, uint32_t cx, uint32_t cy)
 	for (uint32_t i = 0; i < height; i++) {
 		uint32_t dst_offset = linesize * i;
 		uint32_t src_offset = video_linesize * i;
-		memcpy(output_frame.data[0] + dst_offset,
-		       video_data + src_offset, linesize);
+		memcpy(output_frame.data[0] + dst_offset, video_data + src_offset, linesize);
 	}
 
 	gs_stagesurface_unmap(filter->stagesurface);
@@ -99,8 +95,7 @@ static void ajaof_start(void *data)
 
 	obs_data_t *settings = obs_source_get_settings(filter->context);
 
-	filter->output = obs_output_create(
-		OUTPUT_ID, "aja_output_filter", settings, NULL);
+	filter->output = obs_output_create(OUTPUT_ID, "aja_output_filter", settings, NULL);
 
 	obs_data_release(settings);
 
@@ -109,8 +104,7 @@ static void ajaof_start(void *data)
 	filter->stagesurface = gs_stagesurface_create(width, height, GS_BGRA);
 	obs_leave_graphics();
 
-	const struct video_output_info *main_voi =
-		video_output_get_info(obs_get_video());
+	const struct video_output_info *main_voi = video_output_get_info(obs_get_video());
 
 	struct video_output_info vi = {0};
 	vi.format = VIDEO_FORMAT_BGRA;
@@ -124,8 +118,7 @@ static void ajaof_start(void *data)
 	vi.name = obs_source_get_name(filter->context);
 
 	video_output_open(&filter->video_output, &vi);
-	obs_output_set_media(filter->output, filter->video_output,
-			     obs_get_audio());
+	obs_output_set_media(filter->output, filter->video_output, obs_get_audio());
 
 	bool started = obs_output_start(filter->output);
 	filter->active = true;
