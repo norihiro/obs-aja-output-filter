@@ -74,12 +74,10 @@ static void ajaof_render(void *data, uint32_t cx, uint32_t cy)
 	video_output_unlock_frame(filter->video_output);
 }
 
-static void ajaof_stop(void *data);
+static void ajaof_stop(struct aja_output_filter_s *filter);
 
-static void ajaof_start(void *data)
+static void ajaof_start(struct aja_output_filter_s *filter)
 {
-	struct aja_output_filter_s *filter = data;
-
 	if (filter->active)
 		return;
 
@@ -129,10 +127,8 @@ static void ajaof_start(void *data)
 		obs_add_main_render_callback(ajaof_render, filter);
 }
 
-static void ajaof_stop(void *data)
+static void ajaof_stop(struct aja_output_filter_s *filter)
 {
-	struct aja_output_filter_s *filter = data;
-
 	if (!filter->active)
 		return;
 
