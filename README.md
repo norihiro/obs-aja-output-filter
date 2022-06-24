@@ -18,7 +18,7 @@ sudo make install
 ```
 
 ### macOS
-Use cmake to build on Linux. After checkout, run these commands.
+Use cmake to build on macOS. After checkout, run these commands.
 ```
 mkdir build && cd build
 cmake ..
