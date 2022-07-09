@@ -37,6 +37,10 @@ static void ajaof_render(void *data, uint32_t cx, uint32_t cy)
 	if (!gs_texrender_begin(filter->texrender, width, height))
 		return;
 
+	obs_source_t *parent = obs_filter_get_parent(filter->context);
+	if (!parent)
+		return;
+
 	struct vec4 background;
 	vec4_zero(&background);
 
