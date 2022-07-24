@@ -14,6 +14,8 @@ struct aja_output_filter_s
 	gs_texrender_t *texrender;
 	gs_stagesurf_t *stagesurface;
 
+	int interleave;
+
 	bool active;
 	volatile bool need_restart;
 };
@@ -24,22 +26,17 @@ static const char *get_name(void *type_data)
 	return obs_module_text("AJAOutput");
 }
 
-static void ajaof_render(void *data, uint32_t cx, uint32_t cy)
+static bool ajaof_render_render(struct aja_output_filter_s *filter)
 {
-	UNUSED_PARAMETER(cx);
-	UNUSED_PARAMETER(cy);
-
-	struct aja_output_filter_s *filter = data;
-
 	uint32_t width = gs_stagesurface_get_width(filter->stagesurface);
 	uint32_t height = gs_stagesurface_get_height(filter->stagesurface);
 
 	if (!gs_texrender_begin(filter->texrender, width, height))
-		return;
+		return false;
 
 	obs_source_t *parent = obs_filter_get_parent(filter->context);
 	if (!parent)
-		return;
+		return false;
 
 	struct vec4 background;
 	vec4_zero(&background);
@@ -55,18 +52,24 @@ static void ajaof_render(void *data, uint32_t cx, uint32_t cy)
 	gs_blend_state_pop();
 	gs_texrender_end(filter->texrender);
 
+	gs_stage_texture(filter->stagesurface, gs_texrender_get_texture(filter->texrender));
+
+	return true;
+}
+
+static bool ajaof_render_output(struct aja_output_filter_s *filter)
+{
 	struct video_frame output_frame;
 	if (!video_output_lock_frame(filter->video_output, &output_frame, 1, obs_get_video_frame_time()))
-		return;
-
-	gs_stage_texture(filter->stagesurface, gs_texrender_get_texture(filter->texrender));
+		return false;
 
 	uint8_t *video_data;
 	uint32_t video_linesize;
 	if (!gs_stagesurface_map(filter->stagesurface, &video_data, &video_linesize))
-		return;
+		return false;
 
 	uint32_t linesize = output_frame.linesize[0];
+	uint32_t height = gs_stagesurface_get_height(filter->stagesurface);
 
 	for (uint32_t i = 0; i < height; i++) {
 		uint32_t dst_offset = linesize * i;
@@ -76,6 +79,41 @@ static void ajaof_render(void *data, uint32_t cx, uint32_t cy)
 
 	gs_stagesurface_unmap(filter->stagesurface);
 	video_output_unlock_frame(filter->video_output);
+
+	return true;
+}
+
+static const char *ajaof_render_pf = "ajaof_render";
+static const char *ajaof_render_render_pf = "ajaof_render_render";
+static const char *ajaof_render_output_pf = "ajaof_render_output";
+
+static void ajaof_render(void *data, uint32_t cx, uint32_t cy)
+{
+	UNUSED_PARAMETER(cx);
+	UNUSED_PARAMETER(cy);
+
+	struct aja_output_filter_s *filter = data;
+
+	if (filter->interleave++ == 2) {
+		filter->interleave = 0;
+		return;
+	}
+
+	profile_start(ajaof_render_pf);
+
+	if (filter->interleave == 1) {
+		profile_start(ajaof_render_render_pf);
+		if (!ajaof_render_render(filter))
+			filter->interleave--;
+		profile_end(ajaof_render_render_pf);
+	}
+	else if (filter->interleave == 2) {
+		profile_start(ajaof_render_output_pf);
+		ajaof_render_output(filter);
+		profile_end(ajaof_render_output_pf);
+	}
+
+	profile_end(ajaof_render_pf);
 }
 
 static void ajaof_stop(void *data);
@@ -106,6 +144,7 @@ static void ajaof_start(void *data)
 	obs_enter_graphics();
 	filter->texrender = gs_texrender_create(GS_BGRA, GS_ZS_NONE);
 	filter->stagesurface = gs_stagesurface_create(width, height, GS_BGRA);
+	filter->interleave = 0;
 	obs_leave_graphics();
 
 	const struct video_output_info *main_voi = video_output_get_info(obs_get_video());
