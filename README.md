@@ -8,22 +8,30 @@ This is a simple plugin for OBS Studio that provides a filter to send video to A
 
 ## Build and install
 ### Linux
-Use cmake to build on Linux. After checkout, run these commands.
+Make sure `libobsConfig.cmake` is found by cmake.
+After checkout, run these commands.
 ```
-sed -i 's;${CMAKE_INSTALL_FULL_LIBDIR};/usr/lib;' CMakeLists.txt
 mkdir build && cd build
-cmake -DCMAKE_INSTALL_PREFIX=/usr ..
-make
+cmake \
+	-DCMAKE_INSTALL_PREFIX=/usr \
+	-DCMAKE_INSTALL_LIBDIR=/usr/lib \
+	..
+make -j2
 sudo make install
 ```
+You might need to adjust `CMAKE_INSTALL_LIBDIR` for your system.
 
 ### macOS
-Use cmake to build on macOS. After checkout, run these commands.
+Make sure `libobsConfig.cmake` is found by cmake.
+After checkout, run these commands.
 ```
 mkdir build && cd build
-cmake ..
-make
+cmake \
+	-DLIBOBS_LIB=<path to libobs.0.dylib> \
+	..
+make -j2
 ```
+Finally, copy `obs-aja-output-filter.so` and `data` to the obs-plugins folder.
 
 ## See also
 - [obs-decklink-output-filter](https://github.com/cg2121/obs-decklink-output-filter)
