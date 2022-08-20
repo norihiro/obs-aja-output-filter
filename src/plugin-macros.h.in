@@ -1,5 +1,5 @@
 /*
-OBS Main View Source Plugin
+OBS AJA Output Filter Plugin
 Copyright (C) 2022 Norihiro Kamae <norihiro@nagater.net>
 
 This program is free software; you can redistribute it and/or modify
