@@ -12,8 +12,7 @@ set(MACOS_BUNDLEID "net.nagater.obs-aja-output-filter")
 set(ID_PREFIX "net.nagater.obs-aja-output-filter.")
 set(MACOS_PACKAGE_UUID "8D4F7684-4C03-4B0A-BD5E-C8A11A633C13")
 set(MACOS_INSTALLER_UUID "FC9CDA23-CB42-4A13-A555-2539A664E6CE")
-
-# Replace `me@contoso.com` with the maintainer email address you want to put in Linux packages
+set(PLUGIN_URL "https://obsproject.com/forum/resources/aja-output-filter.1538/")
 set(LINUX_MAINTAINER_EMAIL "norihiro@nagater.net")
 
 # TAKE NOTE: No need to edit things past this point
