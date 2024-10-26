@@ -1,4 +1,4 @@
-# OBS AJA Output Filter
+# AJA Output Filter plugin for OBS Studio
 
 ## Introduction
 
